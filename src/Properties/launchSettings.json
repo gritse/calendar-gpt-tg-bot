@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AiCalendarTelegramBot": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7267",
+      "launchBrowser": false
+    }
+  }
+}
