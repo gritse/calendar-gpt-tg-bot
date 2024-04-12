@@ -29,7 +29,7 @@ public class CalendarCommandHandler(ITelegramBotClient botClient, string openAiK
                            "в формате iCalendar (расширение *.ics)";
         
         await aiThread.AppendMessage(systemPrompt, Role.System);
-        var response = await aiThread.WriteMessage(message.Text!, Role.User);
+        var response = await aiThread.WriteMessage($"{message.Text!}\nВСЕ ДАТЫ ДЛЯ {DateTime.UtcNow:yyyy} ГОДА", Role.User); // Сейчас {DateTime.UtcNow:yyyy} год.
 
         var vCalendarMatches = Regex.Matches(response.Text!, @"BEGIN:VCALENDAR.+?END:VCALENDAR", RegexOptions.Singleline);
         
