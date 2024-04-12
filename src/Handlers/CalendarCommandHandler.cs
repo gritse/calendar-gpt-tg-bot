@@ -1,45 +1,71 @@
-﻿using System.Runtime.Caching;
+﻿using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
-using AiCalendarTelegramBot.ChatGPT;
+using Ical.Net;
+using Ical.Net.CalendarComponents;
+using Ical.Net.DataTypes;
+using Ical.Net.Serialization;
+using Newtonsoft.Json;
 using OpenAI;
+using OpenAI.Chat;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Message = Telegram.Bot.Types.Message;
+using ChatMessage = OpenAI.Chat.Message;
+using File = System.IO.File;
+using Calendar = Ical.Net.Calendar;
 
 namespace AiCalendarTelegramBot.Handlers;
 
+public record CalendarResponse(Event[] Events);
+public record Event(string Title, string Description, string Date, string Time, string Duration, string Location);
+
 public class CalendarCommandHandler(ITelegramBotClient botClient, string openAiKey)
 {
+    private readonly OpenAIClient _openAiClient = new(openAiKey);
+    private const string GptModelVersion = "gpt-3.5-turbo-0125";
+
     public async ValueTask HandleUserPrompt(Message message)
     {
-        var aiAssistant = new AiChat(openAiKey);
-        var aiThread = await aiAssistant.CreateThread();
+        var systemPrompt = new ChatMessage(Role.System, await File.ReadAllTextAsync("prompt.txt"));
+        var userPrompt = new ChatMessage(Role.User, message.Text);
 
-        var systemPrompt = "Ты помощник по календарю. Твоя задача извлекать из текста информацию " +
-                           "о событиях и возвращать пользователю события в формате iCalendar.  " +
-                           "Пользователь будет отправлять тебе текст на естественном языке, " +
-                           "а ты будешь извлекать информацию о событиях. " +
-                           "НЕ УКАЗЫВАЙ ЧАСОВОЙ ПОЯС В ДАТЕ. НИ В КОЕМ СЛУЧАЕ НЕ УКАЗЫВАЙ " +
-                           "В ДАТЕ ИДЕНТИФИКАТОР ЧАСОВОГО ПОЯСА. " +
-                           "Если в тексте указана неполная или относительная дата и время, " +
-                           "то учитывай текущую дату и время. " +
-                           "При этом SUMMARY и DESCRIPTION должно быть НА ТОМ ЖЕ ЯЗЫКЕ " +
-                           "на котором ИЗНАЧАЛЬНЫЙ ТЕКСТ ПОЛЬЗОВАТЕЛЯ. " +
-                           "Ответ пользователю ОБЯЗАТЕЛЬНО ДОЛЖЕН ВКЛЮЧАИТЬ ТЕКСТ " +
-                           "в формате iCalendar (расширение *.ics)";
-        
-        await aiThread.AppendMessage(systemPrompt, Role.System);
-        var response = await aiThread.WriteMessage($"{message.Text!}\nВСЕ ДАТЫ ДЛЯ {DateTime.UtcNow:yyyy} ГОДА", Role.User); // Сейчас {DateTime.UtcNow:yyyy} год.
+        var chatResponse = await _openAiClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(
+                messages: new[] { systemPrompt, userPrompt },
+                model: GptModelVersion,
+                responseFormat: ChatResponseFormat.Json,
+                temperature: 0, // more deterministic
+                number: 1));
 
-        var vCalendarMatches = Regex.Matches(response.Text!, @"BEGIN:VCALENDAR.+?END:VCALENDAR", RegexOptions.Singleline);
-        
-        foreach (Match vCal in vCalendarMatches)
+        var calendarResponse = JsonConvert.DeserializeObject<CalendarResponse>(chatResponse.FirstChoice.Message);
+
+        var calendar = new Calendar();
+
+        foreach (var responseEvent in calendarResponse.Events)
         {
-            await botClient.SendDocumentAsync(
-                message.Chat.Id,
-                InputFile.FromStream(new MemoryStream(Encoding.UTF8.GetBytes(vCal.Value)), fileName: $"calendar.ics"));
+            var startDate = DateTime.ParseExact($"{responseEvent.Date} {responseEvent.Time}", "yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture);
+            var duration = !TimeSpan.TryParseExact($"{responseEvent.Duration}", @"hh\:mm", CultureInfo.CurrentCulture, out var d)
+                ? TimeSpan.Zero
+                : d;
+
+            var e = new CalendarEvent
+            {
+                Start = new CalDateTime(startDate),
+                Duration = duration,
+                Description = responseEvent.Description,
+                Summary = responseEvent.Title,
+                Location = responseEvent.Location,
+            };
+
+            calendar.Events.Add(e);
         }
+
+        var serializer = new CalendarSerializer();
+        var serializedCalendar = serializer.SerializeToString(calendar);
+
+        await botClient.SendDocumentAsync(
+            message.Chat.Id,
+            InputFile.FromStream(new MemoryStream(Encoding.UTF8.GetBytes(serializedCalendar)), fileName: $"calendar.ics"));
     }
 
-    public async ValueTask<bool> CanHandle(Message message) => true;
+
 }

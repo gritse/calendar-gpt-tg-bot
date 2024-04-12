@@ -8,6 +8,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Dapper" Version="2.1.28" />
+        <PackageReference Include="Ical.Net" Version="4.2.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0"/>
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.2.0" />
@@ -27,6 +28,9 @@
         <None Update="local.settings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        </None>
+        <None Update="prompt.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
     <ItemGroup>

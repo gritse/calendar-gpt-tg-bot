@@ -37,8 +37,8 @@ public class MessageQueueTrigger
 
         _logger.LogInformation($"Message from '{message.Chat.Id}:{message.Chat.Username}'");
 
-        // var allowedUsers = new[] { "nickname" };
-        // if (!allowedUsers.Contains(message.Chat.Username)) return;
+        var allowedUsers = new[] { "***REMOVED***" };
+        if (!allowedUsers.Contains(message.Chat.Username)) return;
 
         var botClient = new TelegramBotClient(tgApKey);
         var calendarHandler = new CalendarCommandHandler(botClient, openAiKey);
