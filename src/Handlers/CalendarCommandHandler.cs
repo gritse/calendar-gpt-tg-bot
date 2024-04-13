@@ -26,8 +26,10 @@ public class CalendarCommandHandler(ITelegramBotClient botClient, string openAiK
 
     public async ValueTask HandleUserPrompt(Message message)
     {
+        var messageText = message.Text ?? message.Caption;
+
         var systemPrompt = new ChatMessage(Role.System, await File.ReadAllTextAsync("prompt.txt"));
-        var userPrompt = new ChatMessage(Role.User, message.Text);
+        var userPrompt = new ChatMessage(Role.User, messageText);
 
         var chatResponse = await _openAiClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(
                 messages: new[] { systemPrompt, userPrompt },

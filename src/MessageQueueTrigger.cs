@@ -33,7 +33,7 @@ public class MessageQueueTrigger
         _logger.LogInformation($"Deserialized update is '{update}'");
 
         var message = update?.Message;
-        if (message?.Text is null) return;
+        if (message?.Text is null && message?.Caption is null) return;
 
         _logger.LogInformation($"Message from '{message.Chat.Id}:{message.Chat.Username}'");
 
