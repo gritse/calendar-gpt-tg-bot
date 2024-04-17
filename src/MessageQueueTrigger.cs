@@ -23,6 +23,7 @@ public class MessageQueueTrigger
     {
         var tgApKey = Environment.GetEnvironmentVariable("TG_BOT_TOKEN")!;
         var openAiKey = Environment.GetEnvironmentVariable("OPENAI_TOKEN")!;
+        var allowedUsers = Environment.GetEnvironmentVariable("TG_USERS_ALLOWED")!.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
         var body = queueMessage.MessageText;
         _logger.LogInformation($"Queued update {body}");
@@ -37,7 +38,6 @@ public class MessageQueueTrigger
 
         _logger.LogInformation($"Message from '{message.Chat.Id}:{message.Chat.Username}'");
 
-        var allowedUsers = new[] { "***REMOVED***" };
         if (!allowedUsers.Contains(message.Chat.Username)) return;
 
         var botClient = new TelegramBotClient(tgApKey);
