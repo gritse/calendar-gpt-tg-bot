@@ -56,6 +56,15 @@ public class CalendarCommandHandler(ITelegramBotClient botClient, string openAiK
                 Description = responseEvent.Description,
                 Summary = responseEvent.Title,
                 Location = responseEvent.Location,
+                Alarms =
+                {
+                    new Alarm()
+                    {
+                        Trigger = new Trigger(TimeSpan.FromMinutes(-60)),
+                        Action = "DISPLAY",
+                        Description = "Alarm"
+                    }
+                }
             };
 
             calendar.Events.Add(e);
