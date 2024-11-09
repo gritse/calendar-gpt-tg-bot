@@ -28,7 +28,8 @@ public class CalendarCommandHandler(ITelegramBotClient botClient, string openAiK
     {
         var messageText = message.Text ?? message.Caption;
 
-        var systemPrompt = new ChatMessage(Role.System, await File.ReadAllTextAsync("prompt.txt"));
+        var prompt = string.Format(await File.ReadAllTextAsync("prompt.txt"), DateTime.UtcNow.Year);
+        var systemPrompt = new ChatMessage(Role.System, prompt);
         var userPrompt = new ChatMessage(Role.User, messageText);
 
         var chatResponse = await _openAiClient.ChatEndpoint.GetCompletionAsync(new ChatRequest(
@@ -51,7 +52,7 @@ public class CalendarCommandHandler(ITelegramBotClient botClient, string openAiK
 
             var e = new CalendarEvent
             {
-                Start = new CalDateTime(startDate),
+                Start = new CalDateTime(startDate, "Europe/Warsaw"),
                 Duration = duration,
                 Description = responseEvent.Description,
                 Summary = responseEvent.Title,
