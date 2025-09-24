@@ -7,14 +7,11 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Dapper" Version="2.1.28" />
         <PackageReference Include="Ical.Net" Version="4.2.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0"/>
+        <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.2.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.15.1"/>
-        <PackageReference Include="Npgsql" Version="8.0.1" />
-        <PackageReference Include="OpenAI-DotNet" Version="7.6.3" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.15.1" />
         <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
         <PackageReference Include="Telegram.Bot" Version="19.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
@@ -29,11 +26,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
-        <None Update="prompt.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
     <ItemGroup>
-        <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext"/>
+        <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AiCalendar.Services\AiCalendar.Services.csproj" />
     </ItemGroup>
 </Project>
